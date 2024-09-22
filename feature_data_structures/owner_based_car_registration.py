@@ -1,15 +1,13 @@
 class Node:
-    # Owner name will be first name + last name
     def __init__(self, dl_numbers, owner_name, license_plate):
-        self.dl_numbers = dl_numbers
+        self.dl_numbers = dl_numbers  # Driver's License Number (unique key)
         self.owner_name = owner_name
-        self.vehicles = [license_plate]
+        self.vehicles = [license_plate]  # Store a list of vehicles (license plates) under the owner
         self.left = None
         self.right = None
         self.height = 1
 
 class AVLTree:
-
     def __init__(self):
         self.root = None
 
@@ -93,7 +91,65 @@ class AVLTree:
         # Return the (unchanged) node pointer
         return root
 
-    # Find all vehicles registered to a specific owner using their driver's license number (dl_numbers)
+    # Remove a license plate for a specific driver's license
+    def remove(self, root, dl_number, license_plate):
+        if not root:
+            return root
+
+        if dl_number < root.dl_numbers:
+            root.left = self.remove(root.left, dl_number, license_plate)
+        elif dl_number > root.dl_numbers:
+            root.right = self.remove(root.right, dl_number, license_plate)
+        else:
+            # If we found the driver's license node, remove the vehicle from the list
+            if license_plate in root.vehicles:
+                root.vehicles.remove(license_plate)
+
+            # If no vehicles remain, we delete the node
+            if not root.vehicles:
+                if not root.left:
+                    return root.right
+                elif not root.right:
+                    return root.left
+
+                # If the node has two children, get the inorder successor (smallest in the right subtree)
+                temp = self.get_min_value_node(root.right)
+                root.dl_numbers = temp.dl_numbers
+                root.vehicles = temp.vehicles
+                root.right = self.remove(root.right, temp.dl_numbers, license_plate)
+
+        # If the node had children, we need to update its height and balance the tree
+        if root is None:
+            return root
+
+        root.height = max(self.get_height(root.left), self.get_height(root.right)) + 1
+
+        balance = self.get_balance(root)
+
+        # Balancing
+        if balance > 1 and self.get_balance(root.left) >= 0:
+            return self.right_rotate(root)
+
+        if balance < -1 and self.get_balance(root.right) <= 0:
+            return self.left_rotate(root)
+
+        if balance > 1 and self.get_balance(root.left) < 0:
+            root.left = self.left_rotate(root.left)
+            return self.right_rotate(root)
+
+        if balance < -1 and self.get_balance(root.right) > 0:
+            root.right = self.right_rotate(root.right)
+            return self.left_rotate(root)
+
+        return root
+
+    # Utility function to get the node with the smallest value in a subtree
+    def get_min_value_node(self, node):
+        if node is None or node.left is None:
+            return node
+        return self.get_min_value_node(node.left)
+
+    # Find vehicles by driver's license number
     def find_vehicles_by_dl(self, root, dl_numbers):
         if not root:
             return None
@@ -103,11 +159,7 @@ class AVLTree:
         elif dl_numbers > root.dl_numbers:
             return self.find_vehicles_by_dl(root.right, dl_numbers)
         else:
-            # Owner found, return the list of vehicles
-            return {
-                'owner_name': root.owner_name,
-                'vehicles': root.vehicles
-            }
+            return {'owner_name': root.owner_name, 'vehicles': root.vehicles}
 
     # Utility function to print the tree (for debugging)
     def pre_order(self, root):
@@ -116,3 +168,47 @@ class AVLTree:
         print(f"DL Number: {root.dl_numbers}, Owner: {root.owner_name}, Vehicles: {root.vehicles}")
         self.pre_order(root.left)
         self.pre_order(root.right)
+
+def testcases_avl_tree():
+    # Initialize the AVL tree
+    avl_tree = AVLTree()
+    root = None
+
+    # Test Case 1: Insert vehicles for different owners
+    print("\n-- Test Case 1: Inserting vehicles for multiple owners --")
+    root = avl_tree.insert(root, "DL12345", "Alice", "ABC123")
+    root = avl_tree.insert(root, "DL67890", "Bob", "XYZ789")
+    root = avl_tree.insert(root, "DL54321", "Charlie", "GHI012")
+    avl_tree.pre_order(root)  # Print the tree structure
+
+    # Test Case 2: Insert multiple vehicles for the same owner (with repeated dl_numbers)
+    print("\n-- Test Case 2: Inserting multiple vehicles for the same owner --")
+    root = avl_tree.insert(root, "DL12345", "Alice", "DEF456")  # Adding another vehicle for Alice
+    root = avl_tree.insert(root, "DL67890", "Bob", "UVW345")    # Adding another vehicle for Bob
+    avl_tree.pre_order(root)  # Print the tree structure
+
+    # Test Case 3: Search for vehicles owned by a specific driver (using dl_numbers)
+    print("\n-- Test Case 3: Searching for vehicles by driver's license number --")
+    print("Vehicles for DL12345 (Alice):", avl_tree.find_vehicles_by_dl(root, "DL12345"))
+    print("Vehicles for DL67890 (Bob):", avl_tree.find_vehicles_by_dl(root, "DL67890"))
+    print("Vehicles for DL54321 (Charlie):", avl_tree.find_vehicles_by_dl(root, "DL54321"))
+
+    # Test Case 4: Edge case - Search for a non-existent driver's license number
+    print("\n-- Test Case 4: Searching for a non-existent driver's license number --")
+    print("Vehicles for DL99999 (non-existent):", avl_tree.find_vehicles_by_dl(root, "DL99999"))
+
+    # Test Case 5: Remove a license plate
+    print("\n-- Test Case 5: Remove a license plate --")
+    print("Vehicles for DL12345 (Alice): remove(DEF456)")
+    avl_tree.remove(root, "DL12345", "DEF456")
+    avl_tree.pre_order(root)  # Print the tree structure
+
+    # Test Case 6: Insert into an empty AVL tree (Edge case)
+    print("\n-- Test Case 6: Inserting into an empty AVL tree --")
+    empty_tree_root = None
+    empty_tree_root = avl_tree.insert(empty_tree_root, "DL11111", "Eve", "LMN345")
+    avl_tree.pre_order(empty_tree_root)  # Should only show Eve's data
+
+# Running the test suite
+if __name__ == "__main__":
+    testcases_avl_tree()

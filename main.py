@@ -9,6 +9,7 @@ from feature_data_structures.plate_lookup_registry import Trie
 from feature_data_structures.owner_based_car_registration import AVLTree
 
 def menu_page():
+    print("test")
     pass
 
 if __name__ == '__main__':

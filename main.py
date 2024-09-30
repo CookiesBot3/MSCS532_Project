@@ -5,7 +5,7 @@ from objects.owner import Owner
 
 from feature_data_structures.vehicle_registration_system import VehicleRegistrationSystem
 from feature_data_structures.expiration_data import ExpirationData
-from feature_data_structures.plate_lookup_registry import Trie
+from feature_data_structures.plate_lookup_registry import CompressedTrie
 from feature_data_structures.owner_based_car_registration import AVLTree
 
 def main_menu():
@@ -96,7 +96,7 @@ def add_vehicle(trie, heap, car_system, avl_tree):
 def search_by_prefix(trie):
     print("\n---- Search by License Plate Prefix ----")
     prefix = input("Enter the license plate prefix: ")
-    result = trie.search_by_prefix(prefix)
+    result = trie.search(prefix)
     if result:
         print(f"License plates starting with '{prefix}': {result}")
     else:
@@ -142,8 +142,9 @@ def get_next_expiring_vehicle(heap):
 
 def display_all_registrations(car_system):
     print("\n---- Display All Vehicle Registrations ----")
-    for license_plate, details in car_system.registrations.items():
-        print(f"License Plate: {license_plate}, Details: {details}")
+    # for license_plate, details in car_system.registrations.items():
+    #     print(f"License Plate: {license_plate}, Details: {details}")
+    car_system.display_all_registrations()
 
 def find_vehicles_by_license(avl_tree):
     print("\n---- Find Vehicles by Driver's License ----")
@@ -157,7 +158,7 @@ def find_vehicles_by_license(avl_tree):
 
 if __name__ == '__main__':
     car_system = VehicleRegistrationSystem()
-    trie = Trie()
+    trie = CompressedTrie()
     heap = ExpirationData()
     avl_tree = AVLTree()
 

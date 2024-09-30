@@ -14,4 +14,10 @@ Run the main.py file and simulate with the correct input for each of the options
 
 Phase 3 Deliverable 3.
 
-TEST TODO
+Added
+1. trie_test.py
+2. Deliverable 3 docs and pdf
+
+trie_test.py, this is the test suite for testing the optimized and non-optimized Trie data structures.
+
+To run the trie_test suite simply run the file and the result will be produce in the terminal.

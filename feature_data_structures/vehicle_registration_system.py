@@ -1,5 +1,6 @@
 from objects.vehicle import Vehicle
 from objects.owner import Owner
+from functools import lru_cache
 
 class VehicleRegistrationSystem:
 
@@ -26,40 +27,42 @@ class VehicleRegistrationSystem:
             'registration_date': registration_date,
             'expiration_date': expiration_date
         }
+        # Clear the cache after adding a new vehicle to ensure cache consistency
+        self.get_registrations.cache_clear()
 
     def update_registration(self, license_plate,field, value ):
-        # If license plate is not found return an error message
-        if license_plate not in self.registrations:
-            print(f"No vehicle found with license plate {license_plate}")
-            return
-
-        # Split the field path by periods (e.g., "owner.first_name")
-        field_path = field.split(".")
-        registration = self.registrations[license_plate]
-
-        # Navigate through the nested dictionary to find the field to update
-        target = registration
-        for key in field_path[:-1]:  # Traverse to the second-to-last key
-            if key in target:
-                target = target[key]
+        if license_plate in self.registrations:
+            if field in self.registrations[license_plate]['vehicle']:
+                self.registrations[license_plate]['vehicle'][field] = value
+            elif field in self.registrations[license_plate]['owner']:
+                self.registrations[license_plate]['owner'][field] = value
+            elif field in ['registration_date', 'expiration_date']:
+                self.registrations[license_plate][field] = value
             else:
-                print(f"Field path '{field}' not found")
-                return
+                print(f"Invalid field: {field}")
 
-        # Update the last field in the path
-        last_key = field_path[-1]
-        if last_key in target:
-            target[last_key] = value
-            print(f"Updated {field} to {value}")
+            # Clear the cache after updating the registration
+            self.get_registrations.cache_clear()
         else:
-            print(f"Field '{last_key}' not found in {field}")
+            print(f"Vehicle with license plate {license_plate} not found.")
 
+    @lru_cache(maxsize=100)  # Cache for storing frequently accessed vehicle records (most recent 100 lookups)
     def get_registrations(self, license_plate):
         return self.registrations.get(license_plate, None)
 
     def remove_vehicle(self, license_plate):
         if license_plate in self.registrations:
             del self.registrations[license_plate]
+            self.get_registrations.cache_clear()
+        else:
+            print(f"Vehicle with license plate {license_plate} not found.")
+
+    def display_all_registrations(self):
+        """
+        Display all vehicle registrations in the system.
+        """
+        for license_plate, details in self.registrations.items():
+            print(f"License Plate: {license_plate}, Details: {details}")
 
 # Test suite for the vehicle registration system implemented using a dictionary
 
@@ -78,7 +81,7 @@ def test_vehicle_registration_system():
     car_system.add_vehicle("XYZ789", vehicle_2, owner_2, "2022-06-15", "2023-06-15")
 
     car_system.add_vehicle("LMN456", vehicle_1, owner_1, "2023-04-01", "2024-04-01")  # Another vehicle for the same owner
-    print(car_system.registrations)  # Print the current registrations to verify
+    car_system.display_all_registrations()  # Print the current registrations to verify
 
     # Test Case 2: Retrieving vehicle registration by license plate
     print("\n-- Test Case 2: Retrieving vehicle registration by license plate --")
@@ -88,22 +91,22 @@ def test_vehicle_registration_system():
 
     # Test Case 3: Updating specific fields in a vehicle registration
     print("\n-- Test Case 3: Updating specific fields in a vehicle registration --")
-    car_system.update_registration("ABC123", "owner.first_name", "Alice")  # Update owner first name
-    car_system.update_registration("XYZ789", "vehicle.color", "Green")  # Update vehicle color
+    car_system.update_registration("ABC123", "first_name", "Alice")  # Update owner first name
+    car_system.update_registration("XYZ789", "color", "Green")  # Update vehicle color
     car_system.update_registration("LMN456", "expiration_date", "2025-04-01")  # Update expiration date
-    car_system.update_registration("XYZ789", "vehicle.invalid_field", "Value")  # Edge case: Invalid field
-    print(car_system.registrations)  # Verify updates
+    car_system.update_registration("XYZ789", "invalid_field", "Value")  # Edge case: Invalid field
+    car_system.display_all_registrations()  # Verify updates
 
     # Test Case 4: Removing a vehicle registration by license plate
     print("\n-- Test Case 4: Removing a vehicle registration --")
     car_system.remove_vehicle("ABC123")  # Remove existing registration
-    print(car_system.registrations)  # Verify removal
+    car_system.display_all_registrations()  # Verify removal
     car_system.remove_vehicle("NONEXISTENT")  # Edge case: Try to remove non-existent registration
 
     # Test Case 5: Edge case - Adding a duplicate license plate
     print("\n-- Test Case 5: Adding a duplicate license plate --")
     car_system.add_vehicle("XYZ789", vehicle_2, owner_2, "2022-06-15", "2023-06-15")  # Attempt to re-add XYZ789
-    print(car_system.registrations)
+    car_system.display_all_registrations()
 
 # Running the test suite
 if __name__ == "__main__":

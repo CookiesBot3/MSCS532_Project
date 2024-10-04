@@ -62,10 +62,21 @@ class VehicleRegistrationSystem:
         Display all vehicle registrations in the system.
         """
         for license_plate, details in self.registrations.items():
-            print(f"License Plate: {license_plate}, Details: {details}")
+            print(f"License Plate: {license_plate}")
+            print(f"Owner: \n\tFirst name: {details['owner']['first_name']}"
+                  f"\n\tLast name: {details['owner']['last_name']}"
+                  f"\n\tLicense number: {details['owner']['license_number']}")
+            print(f"Vehicle: "
+                  f"\n\tMake: {details['vehicle']['make']}"
+                  f"\n\tModel: {details['vehicle']['model']}"
+                  f"\n\tYear: {details['vehicle']['year']}"
+                  f"\n\tColor: {details['vehicle']['color']}"
+                  f"\n\tClassification: {details['vehicle']['classification']}"
+                  f"\n\tVin Number: {details['vehicle']['vin_number']}")
+            print(f"Registration Date: {details['registration_date']}")
+            print(f"Expiration Date: {details['expiration_date']}\n")
 
 # Test suite for the vehicle registration system implemented using a dictionary
-
 def test_vehicle_registration_system():
     # Create the CarRegistrationSystem object
     car_system = VehicleRegistrationSystem()
@@ -94,8 +105,8 @@ def test_vehicle_registration_system():
     car_system.update_registration("ABC123", "first_name", "Alice")  # Update owner first name
     car_system.update_registration("XYZ789", "color", "Green")  # Update vehicle color
     car_system.update_registration("LMN456", "expiration_date", "2025-04-01")  # Update expiration date
-    car_system.update_registration("XYZ789", "invalid_field", "Value")  # Edge case: Invalid field
     car_system.display_all_registrations()  # Verify updates
+    car_system.update_registration("XYZ789", "invalid_field", "Value")  # Edge case: Invalid field
 
     # Test Case 4: Removing a vehicle registration by license plate
     print("\n-- Test Case 4: Removing a vehicle registration --")

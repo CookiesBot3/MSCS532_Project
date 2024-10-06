@@ -1,6 +1,5 @@
 from objects.vehicle import Vehicle
 from objects.owner import Owner
-from functools import lru_cache
 
 class VehicleRegistrationSystem:
 
@@ -27,8 +26,6 @@ class VehicleRegistrationSystem:
             'registration_date': registration_date,
             'expiration_date': expiration_date
         }
-        # Clear the cache after adding a new vehicle to ensure cache consistency
-        self.get_registrations.cache_clear()
 
     def update_registration(self, license_plate,field, value ):
         if license_plate in self.registrations:
@@ -41,19 +38,32 @@ class VehicleRegistrationSystem:
             else:
                 print(f"Invalid field: {field}")
 
-            # Clear the cache after updating the registration
-            self.get_registrations.cache_clear()
         else:
             print(f"Vehicle with license plate {license_plate} not found.")
 
-    @lru_cache(maxsize=100)  # Cache for storing frequently accessed vehicle records (most recent 100 lookups)
     def get_registrations(self, license_plate):
-        return self.registrations.get(license_plate, None)
+        if not license_plate in self.registrations:
+            print("License plate not found.")
+            return
+        details = self.registrations.get(license_plate, None)
+        print(f"License Plate: {license_plate}")
+        print(f"Owner: \n\tFirst name: {details['owner']['first_name']}"
+              f"\n\tLast name: {details['owner']['last_name']}"
+              f"\n\tLicense number: {details['owner']['license_number']}")
+        print(f"Vehicle: "
+              f"\n\tMake: {details['vehicle']['make']}"
+              f"\n\tModel: {details['vehicle']['model']}"
+              f"\n\tYear: {details['vehicle']['year']}"
+              f"\n\tColor: {details['vehicle']['color']}"
+              f"\n\tClassification: {details['vehicle']['classification']}"
+              f"\n\tVin Number: {details['vehicle']['vin_number']}")
+        print(f"Registration Date: {details['registration_date']}")
+        print(f"Expiration Date: {details['expiration_date']}\n")
+        return details
 
     def remove_vehicle(self, license_plate):
         if license_plate in self.registrations:
             del self.registrations[license_plate]
-            self.get_registrations.cache_clear()
         else:
             print(f"Vehicle with license plate {license_plate} not found.")
 
@@ -62,19 +72,7 @@ class VehicleRegistrationSystem:
         Display all vehicle registrations in the system.
         """
         for license_plate, details in self.registrations.items():
-            print(f"License Plate: {license_plate}")
-            print(f"Owner: \n\tFirst name: {details['owner']['first_name']}"
-                  f"\n\tLast name: {details['owner']['last_name']}"
-                  f"\n\tLicense number: {details['owner']['license_number']}")
-            print(f"Vehicle: "
-                  f"\n\tMake: {details['vehicle']['make']}"
-                  f"\n\tModel: {details['vehicle']['model']}"
-                  f"\n\tYear: {details['vehicle']['year']}"
-                  f"\n\tColor: {details['vehicle']['color']}"
-                  f"\n\tClassification: {details['vehicle']['classification']}"
-                  f"\n\tVin Number: {details['vehicle']['vin_number']}")
-            print(f"Registration Date: {details['registration_date']}")
-            print(f"Expiration Date: {details['expiration_date']}\n")
+            self.get_registrations(license_plate)
 
 # Test suite for the vehicle registration system implemented using a dictionary
 def test_vehicle_registration_system():

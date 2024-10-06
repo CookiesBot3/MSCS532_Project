@@ -12,12 +12,13 @@ def main_menu():
     print("\n---- Vehicle Registration System ----")
     print("1. Add Vehicle Registration")
     print("2. Search by License Plate Prefix")
-    print("3. Update Vehicle Expiration Date")
-    print("4. Remove Vehicle Registration")
-    print("5. Get Next Expiring Vehicle")
-    print("6. Display All Registrations")
-    print("7. Find Vehicles by Driver's License")
-    print("8. Exit")
+    print("3. Search Vehicle Details by License Plate")
+    print("4. Update Vehicle Expiration Date")
+    print("5. Remove Vehicle Registration")
+    print("6. Get Next Expiring Vehicle")
+    print("7. Display All Registrations")
+    print("8. Find Vehicles by Driver's License")
+    print("9. Exit")
     return input("Enter your choice: ")
 
 # We need to add all the details when a new vehicle is added.
@@ -31,10 +32,10 @@ def add_vehicle(trie, heap, car_system, avl_tree):
     def get_valid_year(prompt):
         while True:
             year = input(prompt)
-            if year.isdigit() and 1886 <= int(year) <= datetime.datetime.now().year:  # First car invented in 1886
+            if year.isdigit() and 1886 <= int(year) <= datetime.now().year:  # First car invented in 1886
                 return int(year)
             else:
-                print(f"Invalid input. Please enter a valid year between 1886 and {datetime.datetime.now().year}.")
+                print(f"Invalid input. Please enter a valid year between 1886 and {datetime.now().year}.")
 
     year = get_valid_year("Enter vehicle year: ")
 
@@ -73,7 +74,7 @@ def add_vehicle(trie, heap, car_system, avl_tree):
             date = input(prompt)
             try:
                 # Try to parse the date in YYYY-MM-DD format
-                datetime.datetime.strptime(date, "%Y-%m-%d")
+                datetime.strptime(date, "%Y-%m-%d")
                 return date
             except ValueError:
                 print("Invalid date format. Please enter the date in YYYY-MM-DD format.")
@@ -102,6 +103,12 @@ def search_by_prefix(trie):
     else:
         print(f"No license plates found with prefix '{prefix}'.")
 
+def search_by_plate(car_system):
+    print("\n---- Search Registration by License Plate  ----")
+    plate = input("Enter the license plate to retrieve full detail: ")
+    print("")
+    car_system.get_registrations(plate)
+
 
 def update_expiration_date(heap, car_system):
     print("\n---- Update Vehicle Expiration Date ----")
@@ -120,7 +127,7 @@ def remove_vehicle(trie, heap, car_system, avl_tree):
     license_plate = input("Enter license plate to remove: ")
 
     # Get owner information to remove from AVL tree
-    vehicle_info = car_system.get_vehicle(license_plate)
+    vehicle_info = car_system.get_registrations(license_plate)
     if vehicle_info:
         license_number = vehicle_info['owner']['license_number']
         avl_tree.root = avl_tree.remove(avl_tree.root, license_number, license_plate)  # Remove from AVL Tree
@@ -170,16 +177,18 @@ if __name__ == '__main__':
         elif choice == '2':
             search_by_prefix(trie)
         elif choice == '3':
-            update_expiration_date(heap, car_system)
+            search_by_plate(car_system)
         elif choice == '4':
-            remove_vehicle(trie, heap, car_system, avl_tree)
+            update_expiration_date(heap, car_system)
         elif choice == '5':
-            get_next_expiring_vehicle(heap)
+            remove_vehicle(trie, heap, car_system, avl_tree)
         elif choice == '6':
-            display_all_registrations(car_system)
+            get_next_expiring_vehicle(heap)
         elif choice == '7':
-            find_vehicles_by_license(avl_tree)
+            display_all_registrations(car_system)
         elif choice == '8':
+            find_vehicles_by_license(avl_tree)
+        elif choice == '9':
             print("Exiting system...")
             break
         else:
